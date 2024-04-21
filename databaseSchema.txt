@@ -1,0 +1,249 @@
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sakila             |
+| stock              |
+| sys                |
+| world              |
++--------------------+
+7 rows in set (0.04 sec)
+
+mysql>
+mysql>
+mysql> use stock;\
+Database changed
+mysql>
+mysql>
+mysql> show tables;
++-----------------+
+| Tables_in_stock |
++-----------------+
+| custumer        |
+| products        |
+| purchase        |
+| sale            |
+| vendor          |
++-----------------+
+5 rows in set (0.01 sec)
+
+mysql>
+mysql>
+mysql>
+mysql>
+mysql> select * from purchase;
++------+-------------------+--------+------+------------+-------------+
+| cid  | name              | hsn    | qty  | P_date     | price       |
++------+-------------------+--------+------+------------+-------------+
+|    1 | HP Victus         | uc1212 |    1 | 2023-12-27 | 25000.00000 |
+|    1 | HP Victus         | uc1212 |    1 | 2023-12-27 | 25000.00000 |
+|    1 | Dell Inspiron5530 | uc1212 |    1 | 2023-12-27 |     0.00000 |
++------+-------------------+--------+------+------------+-------------+
+3 rows in set (0.01 sec)
+
+mysql>
+mysql>
+mysql>
+mysql> select * from sale;
+Empty set (0.00 sec)
+
+mysql>
+mysql>
+mysql>
+mysql>
+mysql>
+mysql> desc sale;
++--------+---------------+------+-----+---------+----------------+
+| Field  | Type          | Null | Key | Default | Extra          |
++--------+---------------+------+-----+---------+----------------+
+| No     | int           | NO   | PRI | NULL    | auto_increment |
+| P_DATE | date          | YES  |     | NULL    |                |
+| NAME   | varchar(40)   | YES  |     | NULL    |                |
+| Items  | int           | YES  |     | NULL    |                |
+| Total  | decimal(10,5) | YES  |     | NULL    |                |
++--------+---------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+
+DELIMITER //
+CREATE TRIGGER T1
+AFTER INSERT ON PURCHASE
+FOR EACH ROW
+BEGIN
+    INSERT INTO SALE
+    SET NAME = (SELECT NAME FROM custumer WHERE custid = NEW.cid),
+        P_DATE = NEW.P_DATE,
+        ITEMS = (SELECT SUM(QTY) FROM PURCHASE WHERE NAME = NEW.NAME AND P_DATE = NEW.P_DATE),
+        TOTAL = (SELECT SUM(PRICE) FROM PURCHASE WHERE NAME = NEW.NAME AND P_DATE = NEW.P_DATE);
+END;
+//
+DELIMITER ;
+
+
+mysql>
+mysql>
+mysql>
+mysql> desc purchase;
++--------+---------------+------+-----+---------+-------+
+| Field  | Type          | Null | Key | Default | Extra |
++--------+---------------+------+-----+---------+-------+
+| cid    | int           | YES  |     | NULL    |       |
+| name   | varchar(40)   | YES  |     | NULL    |       |
+| hsn    | varchar(20)   | YES  |     | NULL    |       |
+| qty    | int           | YES  |     | NULL    |       |
+| P_date | date          | YES  |     | NULL    |       |
+| price  | decimal(10,5) | YES  |     | NULL    |       |
++--------+---------------+------+-----+---------+-------+
+6 rows in set (0.00 sec)
+
+
+
+
+mysql>
+mysql>
+mysql> desc products;
++-----------------+---------------+------+-----+---------+-------+
+| Field           | Type          | Null | Key | Default | Extra |
++-----------------+---------------+------+-----+---------+-------+
+| NAME            | varchar(40)   | NO   |     | NULL    |       |
+| PRICE           | decimal(10,5) | YES  |     | NULL    |       |
+| GST             | decimal(10,5) | YES  |     | NULL    |       |
+| OPEN_STOCK      | int           | YES  |     | NULL    |       |
+| OPEN_STOCK_DATE | date          | YES  |     | NULL    |       |
+| HSN             | varchar(20)   | YES  |     | NULL    |       |
+| TOTAL           | decimal(10,5) | YES  |     | NULL    |       |
+| CGST            | decimal(10,2) | YES  |     | NULL    |       |
+| SGST            | decimal(10,2) | YES  |     | NULL    |       |
+| s_price         | decimal(10,5) | YES  |     | NULL    |       |
++-----------------+---------------+------+-----+---------+-------+
+10 rows in set (0.00 sec)
+
+mysql>
+mysql>
+mysql> desc custumer;
++--------------+---------------+------+-----+---------+----------------+
+| Field        | Type          | Null | Key | Default | Extra          |
++--------------+---------------+------+-----+---------+----------------+
+| custid       | int           | NO   | PRI | NULL    | auto_increment |
+| phone        | varchar(15)   | NO   | UNI | NULL    |                |
+| city         | varchar(30)   | YES  |     | NULL    |                |
+| lastpurchase | decimal(10,5) | YES  |     | NULL    |                |
+| name         | varchar(40)   | NO   |     | NULL    |                |
++--------------+---------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+
+mysql>
+mysql>
+mysql> desc vendor;
++---------+-------------+------+-----+---------+-------+
+| Field   | Type        | Null | Key | Default | Extra |
++---------+-------------+------+-----+---------+-------+
+| NAME    | varchar(30) | YES  |     | NULL    |       |
+| CITY    | varchar(20) | YES  |     | NULL    |       |
+| PHONE   | varchar(15) | YES  |     | NULL    |       |
+| WP      | varchar(20) | YES  |     | NULL    |       |
+| EMAIL   | varchar(20) | YES  |     | NULL    |       |
+| ADDRESS | varchar(40) | YES  |     | NULL    |       |
++---------+-------------+------+-----+---------+-------+
+6 rows in set (0.00 sec)
+
+mysql>
+mysq
+
+mysql> DELIMITER $$
+mysql>
+mysql> CREATE PROCEDURE tosale(
+    -> IN idc int,
+    ->     IN tarikh date
+    -> )
+    -> BEGIN
+    -> INSERT INTO SALE (P_DATE, NAME, Items, Total, CID) values
+    -> (tarikh,(SELECT name FROM CUSTUMER WHERE custid = idc),
+    -> (SELECT SUM(QTY) FROM PURCHASE WHERE cid = idc and P_date = tarikh),
+    -> (SELECT SUM(price) FROM PURCHASE WHERE cid = idc and P_date = tarikh),idc);
+    ->
+    -> END$$
+
+
+BEGIN
+    DECLARE P_QTY INT DEFAULT 0;
+    DECLARE C_QTY INT DEFAULT 0;
+
+
+    SELECT STOCK INTO P_QTY FROM PRODUCTS WHERE NAME = NEW.NAME;
+
+    IF P_QTY > 0 THEN
+        SET C_QTY = P_QTY - NEW.QTY;
+    ELSE
+        SET C_QTY = 0;
+    END IF;
+
+    UPDATE PRODUCTS SET STOCK = C_QTY WHERE NAME = NEW.NAME;
+
+
+==============================================
+DELIMITER //
+CREATE TRIGGER T1
+AFTER INSERT ON PURCHASE
+FOR EACH ROW
+BEGIN
+    DECLARE P_QTY INT DEFUALT 0;
+	DECLARE C_QTY INT DEFUALT 0;
+	SELECT STOCK IN P_QTY FROM PRODUCTS WHERE NAME = NEW.NAME;
+	IF(STOCK > 0)THEN
+		SET C_QTY = P_QTY - NEW.QTY;
+	ELSE
+		SET C_QTY = 0;
+	END IF;
+	UPDATE PRODUCTS SET STOCK = C_QTY WHERE NAME = NEW.NAME;
+END
+//
+
+DELIMITER //
+CREATE TRIGGER T2
+AFTER INSERT ON PURCHASE
+FOR EACH ROW
+BEGIN
+	DECLARE FINAL_PRICE DECIMAL(10,5);
+	SET FINAL_PRICE = NEW.price * NEW.qty;
+	UPDATE PURCHASE SET TOTAL = FINAL_PRICE WHERE P_date = DATE();
+
+END
+//
+DELIMITER ;
+
+INSERT INTO SALE (P_DATE, NAME, Items, Total, CID) values (SELECT P_date,(SELECT name FROM CUSTUMER WHERE custid = ))
+
+
+DELIMITER $$
+
+CREATE PROCEDURE tosale(
+	IN idc int,
+    IN tarikh date
+)
+BEGIN
+	INSERT INTO SALE (P_DATE, NAME, Items, Total, CID) values 
+	(tarikh,(SELECT name FROM CUSTUMER WHERE custid = idc),
+	(SELECT SUM(QTY) FROM PURCHASE WHERE cid = idc and P_date = tarikh),
+	(SELECT SUM(total) FROM PURCHASE WHERE cid = idc and P_date = tarikh),idc);
+
+END$$
+
+DELIMITER ;
+
+==============================================
+
++----+------------+----------+-------+-----------+------+
+| No | P_DATE     | NAME     | Items | Total     | cid  |
++----+------------+----------+-------+-----------+------+
+|  1 | 2024-01-06 | John Doe |     2 | 100.00000 |    1 |
++----+------------+----------+-------+-----------+------+
+
+
+select name hsn qty price total from purchase where cid = %s and P_date = %s
+
+
